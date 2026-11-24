@@ -14,13 +14,31 @@
   button:hover { background: #1f6feb; }
   #error { color: #ff7b72; min-height: 1.4em; margin-top: 12px; }
   #player { display: none; }
-  #game { width: 100%; max-width: 640px; height: 480px; margin: 0 auto; background: #000; }
+  #game { width: 100%; max-width: 640px; height: 780px; height: calc(min(100vw - 40px, 640px) * 0.9 + 210px); margin: 0 auto; background: #000; }
+  /* Touch controls sit BELOW the game picture, not on top of it.
+     A Game Boy picture is 160x144, so it is 90% as tall as the player is
+     wide, and EmulatorJS draws it at the top of this box (its canvas uses
+     object-fit: contain; object-position: top). The extra ~210px at the
+     bottom of this box is a clear control strip: EmulatorJS anchors its
+     virtual gamepad in the bottom ~180px of this box, above its menu bar,
+     so the D-pad (bottom-left) and A/B buttons (bottom-right) sit under
+     the picture instead of covering it. */
+  #game .ejs_canvas { object-position: top; }
+  #game .ejs_virtualGamepad_parent { bottom: 50px; }
+  #game .ejs_virtualGamepad_left { left: 10px; bottom: 50px; }
+  #game .ejs_virtualGamepad_right { right: 10px; bottom: 50px; }
+  #game .ejs_virtualGamepad_bottom { bottom: 10px; }
   .shelf { margin-top: 18px; }
   .shelf h2 { font-size: 1.2rem; margin: 0 0 6px; }
   .shelf button { display: block; width: 100%; max-width: 420px; margin: 8px auto 0; padding: 12px 16px; }
   .load-own { margin-top: 18px; font-size: 0.95rem; color: #c9d1d9; }
   .load-own input { margin-top: 8px; }
-  @media (max-width: 600px) { h1 { font-size: 1.8rem; } #game { height: 360px; } }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.8rem; }
+    /* On a phone in portrait, stretch the player so the control strip lands
+       at the bottom of the viewport instead of halfway up the page. */
+    #game { height: calc((100vw - 40px) * 0.9 + 210px); height: max(calc((100vw - 40px) * 0.9 + 210px), calc(100dvh - 110px)); }
+  }
 </style>
 </head>
 <body>
@@ -68,6 +86,21 @@
     window.EJS_core = "gb";
     window.EJS_gameUrl = gameUrl;
     window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    // Touch controls (EmulatorJS "gb" defaults, set explicitly so the layout
+    // is pinned in this file): D-pad bottom-left, A/B bottom-right,
+    // Start/Select in the middle, plus Fast/Rewind/Slow. Where they sit on
+    // the page is set by the #game layout in the CSS above; these settings
+    // only fix which controls exist and which corner each one uses.
+    window.EJS_VirtualGamepadSettings = [
+      { type: "button", text: "A", id: "a", location: "right", left: 81, top: 40, bold: true, input_value: 8 },
+      { type: "button", text: "B", id: "b", location: "right", left: 10, top: 70, bold: true, input_value: 0 },
+      { type: "dpad", id: "dpad", location: "left", left: "50%", top: "50%", joystickInput: false, inputValues: [4, 5, 6, 7] },
+      { type: "button", text: "Start", id: "start", location: "center", left: 60, fontSize: 15, input_value: 3 },
+      { type: "button", text: "Select", id: "select", location: "center", left: -5, fontSize: 15, input_value: 2 },
+      { type: "button", text: "Fast", id: "speed_fast", location: "center", left: -35, top: 50, fontSize: 15, block: true, input_value: 27 },
+      { type: "button", text: "Rewind", id: "speed_rewind", location: "center", left: 30, top: 50, fontSize: 15, block: true, input_value: 28 },
+      { type: "button", text: "Slow", id: "speed_slow", location: "center", left: 95, top: 50, fontSize: 15, block: true, input_value: 29 }
+    ];
     var script = document.createElement("script");
     script.id = "ejs-loader";
     script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
