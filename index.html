@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Player</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #0b0e14; color: #e6e6e6; font-family: system-ui, -apple-system, Arial, sans-serif; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .wrap { width: 100%; max-width: 640px; text-align: center; }
+  h1 { font-size: 2.2rem; margin: 0 0 20px; }
+  #lock input[type="text"] { width: 100%; max-width: 320px; padding: 12px 14px; font-size: 1.1rem; border-radius: 8px; border: 1px solid #444; background: #161b26; color: #fff; text-align: center; text-transform: uppercase; }
+  button { padding: 12px 28px; font-size: 1.1rem; border: 0; border-radius: 8px; background: #2f81f7; color: #fff; cursor: pointer; margin-top: 14px; }
+  button:hover { background: #1f6feb; }
+  #error { color: #ff7b72; min-height: 1.4em; margin-top: 12px; }
+  #player { display: none; }
+  #game { width: 100%; max-width: 640px; height: 480px; margin: 0 auto; background: #000; }
+  .load-own { margin-top: 18px; font-size: 0.95rem; color: #c9d1d9; }
+  .load-own input { margin-top: 8px; }
+  @media (max-width: 600px) { h1 { font-size: 1.8rem; } #game { height: 360px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="lock">
+    <h1>Game Player</h1>
+    <input type="text" id="code" placeholder="Enter access code" autocomplete="off" autocapitalize="characters">
+    <br>
+    <button id="unlockBtn" type="button">Unlock</button>
+    <p id="error" role="alert"></p>
+  </div>
+  <div id="player">
+    <h1>Game Player</h1>
+    <div id="game"></div>
+    <div class="load-own">
+      <label for="romFile">Or load your own game file (.gb / .gbc)</label><br>
+      <input type="file" id="romFile" accept=".gb,.gbc">
+    </div>
+  </div>
+</div>
+<script>
+  var APPROVED_HASHES = [
+    "b9c05984691c25fbbd06d8c26ba9a0c87bf2798ed1a6c6fcad6993e8393646fc",
+    "9fbb55fb20e9ea4fadf08f5c9bac167762881c0dc0839a4b6e9e4711df9519f5"
+  ];
+  async function sha256Hex(text) {
+    var data = new TextEncoder().encode(text);
+    var hash = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hash)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  }
+  function startEmulator(gameUrl) {
+    var container = document.getElementById("game");
+    container.innerHTML = "";
+    var old = document.getElementById("ejs-loader");
+    if (old) old.remove();
+    window.EJS_player = "#game";
+    window.EJS_core = "gb";
+    window.EJS_gameUrl = gameUrl;
+    window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+    var script = document.createElement("script");
+    script.id = "ejs-loader";
+    script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+    document.body.appendChild(script);
+  }
+  document.getElementById("unlockBtn").addEventListener("click", async function () {
+    var input = document.getElementById("code");
+    var code = input.value.trim().toUpperCase();
+    var errorEl = document.getElementById("error");
+    if (!code) { errorEl.textContent = "Code not recognized."; return; }
+    var hash = await sha256Hex(code);
+    if (APPROVED_HASHES.indexOf(hash) !== -1) {
+      document.getElementById("lock").style.display = "none";
+      document.getElementById("player").style.display = "block";
+      startEmulator("game.gb");
+    } else {
+      errorEl.textContent = "Code not recognized.";
+    }
+  });
+  document.getElementById("code").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") document.getElementById("unlockBtn").click();
+  });
+  document.getElementById("romFile").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    startEmulator(URL.createObjectURL(file));
+  });
+</script>
+</body>
+</html>
