@@ -27,3 +27,4 @@
 #game .ejs_dpad_down_pressed .ejs_dpad_vertical::after{border-top-color:#fff!important;}
 #game .ejs_dpad_left_pressed .ejs_dpad_bar,#game .ejs_dpad_right_pressed .ejs_dpad_bar,#game .ejs_dpad_up_pressed .ejs_dpad_bar,#game .ejs_dpad_down_pressed .ejs_dpad_bar{background:#7fbcd4!important;}
 @media(max-width:600px){#game .ejs_virtualGamepad_parent::before{font-size:14px;letter-spacing:2px;}}
+#game .ejs_virtualGamepad_bottom .b_speed_rewind{width:52px!important;height:18px!important;line-height:16px!important;border-radius:999px!important;font-size:10px!important;}
