@@ -30,10 +30,8 @@
   #game .ejs_virtualGamepad_bottom { bottom: 10px; }
   .shelf { margin-top: 18px; }
   .shelf h2 { font-size: 1.2rem; margin: 0 0 6px; }
-  .shelf button { display: block; width: 100%; max-width: 420px; margin: 8px auto 0; padding: 12px 16px; }
-  .load-own { margin-top: 18px; font-size: 0.95rem; color: #c9d1d9; }
-  .load-own input { margin-top: 8px; }
-  @media (max-width: 600px) {
+.shelf button { display: block; width: 100%; max-width: 420px; margin: 8px auto 0; padding: 12px 16px; }
+ @media (max-width: 600px) {
     h1 { font-size: 1.8rem; }
     /* On a phone in portrait, stretch the player so the control strip lands
        at the bottom of the viewport instead of halfway up the page. */
@@ -57,11 +55,7 @@
       <h2>Games</h2>
       <div id="gameList"></div>
     </div>
-    <div class="load-own">
-      <label for="romFile">Or load your own game file (.gb / .gbc)</label><br>
-      <input type="file" id="romFile" accept=".gb,.gbc">
-    </div>
-  </div>
+    div>
 </div>
 <script>
   var APPROVED_HASHES = [
@@ -128,9 +122,7 @@
         }
       });
     } catch (e) {
-      // Keep the file picker available if the list cannot be loaded.
-    }
-    if (gameCount === 0) {
+      if (gameCount === 0) {
       var message = document.createElement("p");
       message.textContent = "No games added yet.";
       list.appendChild(message);
@@ -155,11 +147,6 @@
   document.getElementById("code").addEventListener("keydown", function (e) {
     if (e.key === "Enter") document.getElementById("unlockBtn").click();
   });
-  document.getElementById("romFile").addEventListener("change", function (e) {
-    var file = e.target.files && e.target.files[0];
-    if (!file) return;
-    startEmulator(URL.createObjectURL(file));
-  });
-</script>
+</script> 
 </body>
 </html>
