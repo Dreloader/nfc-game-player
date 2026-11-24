@@ -1,0 +1,1 @@
+Upload .gb or .gbc game files into this folder and they will appear in the player automatically.
