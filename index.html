@@ -43,6 +43,9 @@
     "b9c05984691c25fbbd06d8c26ba9a0c87bf2798ed1a6c6fcad6993e8393646fc",
     "9fbb55fb20e9ea4fadf08f5c9bac167762881c0dc0839a4b6e9e4711df9519f5"
   ];
+  // Built-in game: Tobu Tobu Girl, free open-source Game Boy homebrew by Tangram Games (MIT).
+  // The ROM is loaded from the public gbdev homebrew database (raw.githubusercontent.com serves CORS headers).
+  var BUILTIN_GAME_URL = "https://raw.githubusercontent.com/gbdev/database/master/entries/tobutobugirl/tobu.gb";
   async function sha256Hex(text) {
     var data = new TextEncoder().encode(text);
     var hash = await crypto.subtle.digest("SHA-256", data);
@@ -71,7 +74,7 @@
     if (APPROVED_HASHES.indexOf(hash) !== -1) {
       document.getElementById("lock").style.display = "none";
       document.getElementById("player").style.display = "block";
-      startEmulator("game.gb");
+      startEmulator(BUILTIN_GAME_URL);
     } else {
       errorEl.textContent = "Code not recognized.";
     }
