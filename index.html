@@ -15,6 +15,9 @@
   #error { color: #ff7b72; min-height: 1.4em; margin-top: 12px; }
   #player { display: none; }
   #game { width: 100%; max-width: 640px; height: 480px; margin: 0 auto; background: #000; }
+  .shelf { margin-top: 18px; }
+  .shelf h2 { font-size: 1.2rem; margin: 0 0 6px; }
+  .shelf button { display: block; width: 100%; max-width: 420px; margin: 8px auto 0; padding: 12px 16px; }
   .load-own { margin-top: 18px; font-size: 0.95rem; color: #c9d1d9; }
   .load-own input { margin-top: 8px; }
   @media (max-width: 600px) { h1 { font-size: 1.8rem; } #game { height: 360px; } }
@@ -32,6 +35,10 @@
   <div id="player">
     <h1>Game Player</h1>
     <div id="game"></div>
+    <div class="shelf">
+      <h2>Games</h2>
+      <div id="gameList"></div>
+    </div>
     <div class="load-own">
       <label for="romFile">Or load your own game file (.gb / .gbc)</label><br>
       <input type="file" id="romFile" accept=".gb,.gbc">
@@ -46,6 +53,7 @@
   // Built-in game: Tobu Tobu Girl, free open-source Game Boy homebrew by Tangram Games (MIT).
   // The ROM is loaded from the public gbdev homebrew database (raw.githubusercontent.com serves CORS headers).
   var BUILTIN_GAME_URL = "https://raw.githubusercontent.com/gbdev/database/master/entries/tobutobugirl/tobu.gb";
+  var GAMES_API_URL = "https://api.github.com/repos/Dreloader/nfc-game-player/contents/games";
   async function sha256Hex(text) {
     var data = new TextEncoder().encode(text);
     var hash = await crypto.subtle.digest("SHA-256", data);
@@ -65,6 +73,32 @@
     script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
     document.body.appendChild(script);
   }
+  function addGameButton(name, gameUrl) {
+    var list = document.getElementById("gameList");
+    var button = document.createElement("button");
+    button.type = "button";
+    button.textContent = name;
+    button.addEventListener("click", function () { startEmulator(gameUrl); });
+    list.appendChild(button);
+  }
+  async function loadGameShelf() {
+    var list = document.getElementById("gameList");
+    list.innerHTML = "";
+    addGameButton("Tobu Tobu Girl", BUILTIN_GAME_URL);
+    try {
+      var response = await fetch(GAMES_API_URL);
+      if (!response.ok) return;
+      var files = await response.json();
+      if (!Array.isArray(files)) return;
+      files.forEach(function (file) {
+        if (file && file.name && file.download_url && /\.gbc?$/i.test(file.name)) {
+          addGameButton(file.name, file.download_url);
+        }
+      });
+    } catch (e) {
+      // Keep the built-in Tobu Tobu Girl button (and the file picker) if the list cannot be loaded.
+    }
+  }
   document.getElementById("unlockBtn").addEventListener("click", async function () {
     var input = document.getElementById("code");
     var code = input.value.trim().toUpperCase();
@@ -74,6 +108,7 @@
     if (APPROVED_HASHES.indexOf(hash) !== -1) {
       document.getElementById("lock").style.display = "none";
       document.getElementById("player").style.display = "block";
+      loadGameShelf();
       startEmulator(BUILTIN_GAME_URL);
     } else {
       errorEl.textContent = "Code not recognized.";
