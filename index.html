@@ -68,9 +68,6 @@
     "b9c05984691c25fbbd06d8c26ba9a0c87bf2798ed1a6c6fcad6993e8393646fc",
     "9fbb55fb20e9ea4fadf08f5c9bac167762881c0dc0839a4b6e9e4711df9519f5"
   ];
-  // Built-in game: Tobu Tobu Girl, free open-source Game Boy homebrew by Tangram Games (MIT).
-  // The ROM is loaded from the public gbdev homebrew database (raw.githubusercontent.com serves CORS headers).
-  var BUILTIN_GAME_URL = "https://raw.githubusercontent.com/gbdev/database/master/entries/tobutobugirl/tobu.gb";
   var GAMES_API_URL = "https://api.github.com/repos/Dreloader/nfc-game-player/contents/games";
   async function sha256Hex(text) {
     var data = new TextEncoder().encode(text);
@@ -117,20 +114,29 @@
   async function loadGameShelf() {
     var list = document.getElementById("gameList");
     list.innerHTML = "";
-    addGameButton("Tobu Tobu Girl", BUILTIN_GAME_URL);
+    var firstGameUrl = null;
+    var gameCount = 0;
     try {
       var response = await fetch(GAMES_API_URL);
-      if (!response.ok) return;
+      if (!response.ok) throw new Error("Could not load games.");
       var files = await response.json();
-      if (!Array.isArray(files)) return;
+      if (!Array.isArray(files)) throw new Error("Could not load games.");
       files.forEach(function (file) {
         if (file && file.name && file.download_url && /\.gbc?$/i.test(file.name)) {
+          if (!firstGameUrl) firstGameUrl = file.download_url;
           addGameButton(file.name, file.download_url);
+          gameCount++;
         }
       });
     } catch (e) {
-      // Keep the built-in Tobu Tobu Girl button (and the file picker) if the list cannot be loaded.
+      // Keep the file picker available if the list cannot be loaded.
     }
+    if (gameCount === 0) {
+      var message = document.createElement("p");
+      message.textContent = "No games added yet.";
+      list.appendChild(message);
+    }
+    return firstGameUrl;
   }
   document.getElementById("unlockBtn").addEventListener("click", async function () {
     var input = document.getElementById("code");
@@ -141,8 +147,8 @@
     if (APPROVED_HASHES.indexOf(hash) !== -1) {
       document.getElementById("lock").style.display = "none";
       document.getElementById("player").style.display = "block";
-      loadGameShelf();
-      startEmulator(BUILTIN_GAME_URL);
+      var firstGameUrl = await loadGameShelf();
+      if (firstGameUrl) startEmulator(firstGameUrl);
     } else {
       errorEl.textContent = "Code not recognized.";
     }
