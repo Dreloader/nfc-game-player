@@ -73,7 +73,7 @@
     var old = document.getElementById("ejs-loader");
     if (old) old.remove();
     window.EJS_player = "#game";
-    window.EJS_core = "gb";
+    window.EJS_core = /\.gba$/i.test(gameUrl) ? "gba" : "gb";
     window.EJS_gameUrl = gameUrl;
     window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
     // Touch controls (EmulatorJS "gb" defaults, set explicitly so the layout
@@ -115,13 +115,13 @@
       var files = await response.json();
       if (!Array.isArray(files)) throw new Error("Could not load games.");
       files.forEach(function (file) {
-        if (file && file.name && file.download_url && /\.gbc?$/i.test(file.name)) {
+        if (file && file.name && file.download_url && /\.(gb|gbc|gba)$/i.test(file.name)) {
           if (!firstGameUrl) firstGameUrl = file.download_url;
           addGameButton(file.name, file.download_url);
           gameCount++;
         }
       });
-    } catch (e) {
+    } catch (e) {}
       if (gameCount === 0) {
       var message = document.createElement("p");
       message.textContent = "No games added yet.";
